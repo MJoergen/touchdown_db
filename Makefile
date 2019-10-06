@@ -1,5 +1,5 @@
 sources  = main.cpp
-sources += hash.cpp
+sources += index.cpp
 objects = $(sources:.cpp=.o)
 depends = $(sources:.cpp=.d)
 CC = g++
