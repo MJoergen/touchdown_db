@@ -4,7 +4,7 @@ objects = $(sources:.cpp=.o)
 depends = $(sources:.cpp=.d)
 CC = g++
 DEFINES  = -Wall -O3 -march=native
-#DEFINES  = -Wall -O2 -g -pg
+#DEFINES  = -Wall -O0 -g -pg
 #DEFINES += -DNDEBUG
 
 touchdown_db: $(objects) Makefile

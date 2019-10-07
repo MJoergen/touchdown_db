@@ -152,6 +152,25 @@ These numbers are found by running the command
 touchdown_rb -i
 ```
 
+## Generating list of legal moves
+Part of the algorithm is to generate a list of all legal moves in a given position.
+
+For this, the index value is not very useful, so the index value is converted to
+an internal board representation packed into a 32-bit number:
+* Bits 15-0 indicate which squares are non-empty, i.e. contain either a player or an opponent.
+* Bits 31-16 indicate which squares are occupied by the player.
+
+Using this representation it is easy to find all the players pawns, and it is
+easy to determine, if a given square is empty.
+
+This representation must at all times satisfy the following invariant, which states that a
+player pawn must be on a non-empty square.
+```
+(~board & (board >> 16)) == 0
+```
+
+
+
 ## Swapping player to move
 Another part of the algorithm is when examining a legal move and performing a
 lookup in the database, the player to move has to be changed, i.e. after "X" has moved,
@@ -176,4 +195,30 @@ O..X
 ```
 and is represented by the index value 0x344698.
 
+## Output results
+Running the command
+```
+touchdown_db -s touchdown.tb
+```
+
+gives the following result:
+
+```
+Dump of statistics
+Invalid Index     : 14509963
+Illegal position  :  1511662
+Win               :   220104
+Loss              :   535487
+
+Starting position : Win
+```
+
+So only a total of 755591 positions are actually valid. Most of the database
+thus corresponds to invalid positions.
+
+## TODO
+The list of improvements and next steps is quite large:
+* Generalize to larger boards.
+* Allow user to query the database by inputing a specific position
+* Show a best line of play, rather than just the value.
 
