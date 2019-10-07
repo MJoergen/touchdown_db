@@ -147,6 +147,11 @@ The above restrictions together reduce the number of positions as follows:
 2. Reduces the count from 10682368 to 4693459.
 3. Reduces the count from 4693459 to 2267253.
 
+These numbers are found by running the command
+```
+touchdown_rb -i
+```
+
 ## Swapping player to move
 Another part of the algorithm is when examining a legal move and performing a
 lookup in the database, the player to move has to be changed, i.e. after "X" has moved,

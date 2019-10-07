@@ -75,3 +75,4 @@ void indexTest()
    std::cout << "No more than 4 enemy pawns  : " << std::setw(8) << cnt_2 << std::endl;
    std::cout << "No invalid player bits      : " << std::setw(8) << cnt_3 << std::endl;
 } // void indexTest()
+
