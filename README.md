@@ -193,7 +193,7 @@ O..X
 .OX.
 .X..
 ```
-and is represented by the index value 0x344698.
+and is represented by the index value 0x342698.
 
 ## Output results
 Running the command
