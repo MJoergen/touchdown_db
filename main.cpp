@@ -121,18 +121,6 @@ int main(int argc, char **argv) {
             continue;
          }
 
-         //  0  1  2  3
-         //  4  5  6  7
-         //  8  9 10 11
-         // 12 13 14 15
-         // Bits 31-16 indicate whether the square is occupied by the player.
-         uint32_t mask = 0x00100000;   // Skip last row
-         //const uint32_t maskLeft  = 0x11110000;
-         //const uint32_t maskRight = 0x88880000;
-
-         uint32_t position = board.getPosition();
-         assert ((position & 0x000F0000) == 0); // No pawns on the back row.
-
          // Now we loop over all legal moves
          // IF any successor leads to an unknown position, then this position is unknown too.
          // If any successor leads to a LOSS (for the opponent), then this position is a WIN.
@@ -141,37 +129,25 @@ int main(int argc, char **argv) {
          bool isKnown = true;    // Assume position is known.
          bool isWin   = false;   // Assume position is a LOSS, e.g. if no successors.
 
+         uint32_t legalMoves[12];
+         int moveCount = board.writeLegalMoves(legalMoves);
+
          // Loop over all squares
-         for (int i=0; i<12; ++i, mask *= 2) {
-            // Look for a player pawn.
-            if (!(position & mask)) {
-               continue;
+         for (int i=0; i<moveCount; ++i) {
+            board.setPosition(legalMoves[i]);
+            uint32_t newIndex = board.getIndex();
+
+            if (!known.readBit(newIndex))
+            {
+               // If one child is unknown, then we can stop immediately.
+               isKnown = false;
+               break;
             }
-
-            // Is square in front empty?
-            if (!(position & (mask >> 20))) {
-               uint32_t moveMask = mask | (mask >> 4);
-               moveMask = moveMask | (moveMask >> 16);
-               uint32_t newPosition = position ^ moveMask;   // Move pawn up one row.
-
-               newPosition = (indexReverse16(newPosition >> 16) << 16) | indexReverse16(newPosition & 0xFFFF);
-               newPosition ^= (newPosition & 0xFFFF) << 16;
-
-               board.setPosition(newPosition);
-               uint32_t newIndex = board.getIndex();
-
-               if (!known.readBit(newIndex))
-               {
-                  // If one child is unknown, then we can stop immediately.
-                  isKnown = false;
-                  break;
-               }
-               if (!tb.readBit(newIndex))
-               {
-                  // If one child is lost, then we are winning, and can stop immediately.
-                  isWin = true;
-                  break;
-               }
+            if (!tb.readBit(newIndex))
+            {
+               // If one child is lost, then we are winning, and can stop immediately.
+               isWin = true;
+               break;
             }
          } // end for
 
@@ -232,15 +208,15 @@ int main(int argc, char **argv) {
 
    std::cout << std::endl;
    std::cout << "Dump of statistics" << std::endl;
-   std::cout << "Invalid Index    : " << cnt_invalid_index << std::endl;
-   std::cout << "Illegal position : " << cnt_illegal_board << std::endl;
-   std::cout << "Unknown value    : " << cnt_unknown       << std::endl;
-   std::cout << "WIN              : " << cnt_win           << std::endl;
-   std::cout << "LOSS             : " << cnt_loss          << std::endl;
+   std::cout << "Invalid Index     : " << cnt_invalid_index << std::endl;
+   std::cout << "Illegal position  : " << cnt_illegal_board << std::endl;
+   std::cout << "Unknown value     : " << cnt_unknown       << std::endl;
+   std::cout << "WIN               : " << cnt_win           << std::endl;
+   std::cout << "LOSS              : " << cnt_loss          << std::endl;
    std::cout << std::endl;
 
 
-   std::cout << "Starting position:";
+   std::cout << "Starting position : ";
    if (known.readBit(0xF0F00F)) {
       if (tb.readBit(0xF0F00F)) {
          std::cout << "WIN";

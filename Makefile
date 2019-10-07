@@ -3,7 +3,7 @@ sources += index.cpp
 objects = $(sources:.cpp=.o)
 depends = $(sources:.cpp=.d)
 CC = g++
-DEFINES  = -Wall -O3 
+DEFINES  = -Wall -O3 -march=native
 #DEFINES  = -Wall -O2 -g -pg
 #DEFINES += -DNDEBUG
 

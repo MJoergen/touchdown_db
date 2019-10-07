@@ -144,6 +144,102 @@ class Board
       return ret;
    } // toShortString
 
+   int writeLegalMoves(uint32_t legalMoves[12]) const {
+      uint16_t player   = m_position & (m_position >> 16);
+      uint16_t opponent = m_position & (~(m_position >> 16));
+
+      assert ((player & opponent) == 0);         // Check board invariant.
+      assert ((m_position & 0x000F0000) == 0); // No pawns on the back row.
+
+//      std::cout << std::endl;
+//      std::cout << std::setw(8) << std::hex << m_position << " : " << toShortString() << " ";
+
+      //  0  1  2  3
+      //  4  5  6  7
+      //  8  9 10 11
+      // 12 13 14 15
+      // Bits 31-16 indicate whether the square is occupied by the player.
+      uint16_t mask = 0x0010;   // Skip last row, i.e. bits 0 - 3.
+      
+      int moveCount = 0;
+      // Loop over all squares
+      for (int i=0; i<12; ++i, mask *= 2) {
+         // Look for a player pawn.
+         if (!(player & mask)) {
+            continue;
+         }
+
+         uint16_t newMask = mask >> 4;
+
+         // Is square in front empty?
+         if (!(m_position & newMask)) {
+            // Move pawn up one row.
+            uint32_t moveMask = mask | newMask;
+            moveMask |= moveMask << 16;
+            uint32_t newPosition = m_position ^ moveMask;
+
+            // Swap board.
+            newPosition = (indexReverse16(newPosition >> 16) << 16) | indexReverse16(newPosition & 0xFFFF);
+            newPosition ^= (newPosition & 0xFFFF) << 16;
+
+//            std::cout << "U" << newPosition << " " << std::flush;
+            legalMoves[moveCount++] = newPosition;
+            assert (((~newPosition) & (newPosition >> 16)) == 0);
+         }
+
+         //  0  1  2  3
+         //  4  5  6  7
+         //  8  9 10 11
+         // 12 13 14 15
+         newMask = mask >> 3;
+         const uint16_t maskRight = 0x8888;
+
+         // Does the square diagnoally right contain an opponent?
+         if (!(mask & maskRight) && (opponent & newMask)) {
+
+            // Capture pawn up right one row.
+            uint32_t moveMask = mask | (mask << 16);  // Remove player from original square
+            moveMask |= (newMask << 16);              // Capture opponent on new square
+            uint32_t newPosition = m_position ^ moveMask;
+
+            // Swap board.
+            newPosition = (indexReverse16(newPosition >> 16) << 16) | indexReverse16(newPosition & 0xFFFF);
+            newPosition ^= (newPosition & 0xFFFF) << 16;
+
+//            std::cout << "R" << newPosition << " " << std::flush;
+            legalMoves[moveCount++] = newPosition;
+            assert (((~newPosition) & (newPosition >> 16)) == 0);
+         }
+
+         //  0  1  2  3
+         //  4  5  6  7
+         //  8  9 10 11
+         // 12 13 14 15
+         newMask = mask >> 5;
+         const uint16_t maskLeft  = 0x1111;
+
+         // Does the square diagnoally left contain an opponent?
+         if (!(mask & maskLeft) && (opponent & newMask)) {
+
+            // Capture pawn up left one row.
+            uint32_t moveMask = mask | (mask << 16);  // Remove player from original square
+            moveMask |= (newMask << 16);              // Capture opponent on new square
+            uint32_t newPosition = m_position ^ moveMask;
+
+            // Swap board.
+            newPosition = (indexReverse16(newPosition >> 16) << 16) | indexReverse16(newPosition & 0xFFFF);
+            newPosition ^= (newPosition & 0xFFFF) << 16;
+
+//            std::cout << "L" << newPosition << " ";
+            legalMoves[moveCount++] = newPosition;
+            assert (((~newPosition) & (newPosition >> 16)) == 0);
+         }
+      } // end for
+
+//      std::cout << std::dec << std::endl;
+      return moveCount;
+   } // writeLegalMoves
+
    private:
    // Bits 15-0 indicate whether the square is occupied or not.
    // Bits 31-16 indicate whether the squares is occupied by the player.
