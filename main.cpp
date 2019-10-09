@@ -92,14 +92,21 @@ static void outputDatabase(const char *filename)
             continue;
         }
 
-        std::bitset<32> v = board.getPosition();
-        std::cout << std::setw(32) << v << " " << std::dec;
+        uint32_t position = board.getPosition();
+        uint16_t player   = position & (position >> 16);
+        uint16_t opponent = position & (~(position >> 16));
+        uint32_t val      = (opponent << 16) | player;
+
+        for (int i=0; i<32; ++i) {
+            std::cout << (val&1) << " ";
+            val /= 2;
+        }
 
         // Skip positions that are unknown
         if (tb.readBit(index)) {
-            std::cout << "10" << std::endl;
+            std::cout << "  1 0" << std::endl;
         } else {
-            std::cout << "01" << std::endl;
+            std::cout << "  0 1" << std::endl;
         }
     }
 } // outputDatabase
